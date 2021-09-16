@@ -1,0 +1,184 @@
+# What is node.js ?
+It's a javascript runtime buit on google open source v8 javascript engine.
+
+# Why do we need to use node.js ?
+- Single threaded, based on event driven, non blocking I/O model.
+- Perfect for fast and scalable data-intensive apps.
+- Using the same language across the stack (javascript).
+- Huge npm pacakges that makes the develpment much easier.
+- Active community.
+
+# when can we use node.js ?
+- Creatind an API with database behind it (sql or nosql database).
+- Data streaming ideas as (Netflix, youtube, etc..).
+- Real-time chat applications (telegram, whatsapp, etc...).
+- Creating Server Side Rendering Web applications (SSR).
+
+# When not to use node.js ?
+Applications with high server side processing (CPU-intensive tasks), like image manipulation, video conversion, file compression and anything like that.
+
+# What is NPM ?
+- it's a CLI interface app (technology) that manages the pacakges, that is installed automatically with node.js.
+- It contains huge number of pacakges in it's repository made by other developers (community), so, we can download them and make our life easier.
+- It doesn't only have ndoe pacakges, but almost all develpment pacakges outthere, not just for backend, front, desktop, mobile, and nearly any helpful pacakge.
+- npm i package_name
+- npm i --save-dev package_name
+- npm i -g package_name
+
+1.6.3
+Major version. Minor version. patch
+(Really new thing, new features, fixing bugs)
+
+- npm update package_name
+- npm outdated // check if there is outdated in my app
+
+# POSTMAN
+- always use it in you APIs develpment.
+- It acts as a client, just as the browser, but it doesn't need to render html and so on, and of course you could.
+
+# Express Framework
+- It's minimal => means, it's buit on node.js
+- It's really fast and have many features like routing, request and response handeling, middlewares
+server side rendering and much more.
+- It's a framework so, you don't have to re-invent the wheel.
+- It organize your app into the MVC architecture.
+
+# API (applicaiton programming interface)
+- It's a piece of software, that can be used by another piece of software, in order to allow
+applications to talk to each others, it's like gate.
+
+# HTTP methods (verbs):
+GET, POST, PUT, PATCH, DELETE
+
+# CRUD operations:
+create, read, update, delete.
+
+Note!: requests are stateless, means the current request has no idea of the previous request, so
+on the client side, we need to store some info and return it back to our API on every request to 
+represent the state, such as:
+- loggedIn user info and so on
+
+# PUT vs. PATCH for updating:
+- put => request has the entire object.
+- patch => request has only the updated property of the object.
+
+Note!:
+- In req.params, you could pass multiple params/variables as follows:
+'/api/v1/tours/:id/:x/:y' and so on
+But, you always need to pass value for all of them to make this route works, if you want to make
+one of them optional, just add "?"
+'/api/v1/tours/:id/:x/:y?'
+this made params y optional and the inital value of it will be undefined.
+
+# Middlewares
+- They are called so, because they are just functions get exectuted in the middle of recieving a 
+    request and sending a response (request and response cycle)
+- Everything in the node envirnoment is consdiered a middleware and all of them consdiered a 
+"middleware stalk".
+So, the 'middleware stalk" is consdiered a pipline, where the req, res pass through it.
+- They are exectuted according to their order in the code.
+
+# Envirnoment variables:
+- we set them in a file called config.env
+- we use "dotenv" pacakge to use these variables in my express app.
+dotenv.config({
+    path: './config.env'
+})
+- Now, we can call any variable by process.env.vairable_name
+
+
+# How to improve our code quality during development?
+- Add the extentions (eslint, prettier).
+- Download the pacakges need (look at this project)
+- Add two files (eslintrc.json, .prettierrc).
+
+# MongoDB
+- It's a document datatbase with the scalability and flexibility that you want with the 
+querying and indexing that you need.
+
+# Mongoose
+- It's a object data modeling (ODM), for MongoDB and node.js
+- It's buit on MongoDB.
+- We could simply use mongodb driver for our develpment, but mongoose offers powerful interactions
+and queries.
+- There is a schema, where we model our data, by describing the data strucure, default values
+and validation etc.
+- There is a model, a wrapper for the schema, provides an interface to the database to CRUD ops.
+
+# query strings (user optional data) => to filter returned data
+- We could do our ordinary collection.find({our query})
+- we also could use this way
+collection
+    .find()
+    .where('duration')
+    .equals('easy')
+    .where('discount')
+    .gt(5) // and much more methods (check the mongoose docs)
+
+Note!:
+The query strings may don't have to be in the document schema, there are others like sort query,
+limit, page and so on (depending on our logic)
+so we have to exclude those querys from our used querys in our docs such as:
+    const queryObj = {...req.query};
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach(el => delete queryObj[el]);
+- This actually works fine if the querys with "=" operator like page=4 and so on
+- Bu, what if the query is like page >= 5 ???????
+- It's getting more complex now.
+
+        let queryString = JSON.stringify(queryObj);
+        // do some regex
+        queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`); // to add $
+        // Let's convert our string to object again
+        const lastQueryObj = JSON.parse(queryString);
+
+// Now, we could use it this way, "?duration[gte]=5&sort=1"
+
+// what if we want to pass more than one value for a query string? like sorting the docs
+upon many properties?
+- In the url we write this way '?sort=+poperty1,-property2'
+and in our controller
+    if(req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ');
+        // as in mongoose in sort() method, if you want to sort based on many fields
+        // you just need to separate them and pass them to this method
+        query = query.sort(sortBy);
+    }
+// what if we want to only return certain fields from our document to the user?
+- And that's helpful for our bandwidth.
+'?fields=name,price,summary,-duration'
+- Now, we just need to separate them and pass them into select() method, like this
+and this is called including and if we want exclude any property, just add "-" 
+    if(req.query.fields) {
+        const fields = req.query.fields.split(',').join(' ');
+        query = query.select(fields);
+    }
+
+# How to implement pagination in our app ?
+
+    // '?page=2&limit=2' => means 2 docs for every page
+    if(req.query.page) {
+            const page = +req.query.page || 1;
+            const limit = +req.query.limit || 2; // 2 docs for every page
+            const skip = (page -1) * limit;
+            const numTours = await Tour.countDocuments();
+
+        // if we don't have more docs
+        // if we want to pass an error to the catch block, we just need to throw it
+
+            if(skip >= numTours) throw new Error("This page doesn't exist");
+            query = query.skip(skip).limit(limit);
+
+# In order to be professtional, you need to document all your API endpoints and show exactly
+how they work and so on.
+
+
+// start with video 23
+
+
+
+
+
+
+
+
