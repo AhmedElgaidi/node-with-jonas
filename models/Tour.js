@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
+const validator = require('validator');
 
 //========================================
 // Let's define our Schema
@@ -10,8 +12,11 @@ const tourSchema = new Schema({
         type: String,
         required: [true, "The tour must have a name!"],// buit-in validators
         unique: true,
-        trim: true
+        trim: true,
+        // Let's try validate package here
+        validate: [validator.isLowercase, 'should only have lowercase letters']
     },
+    slug: String,
     ratingAverage: {
         type: Number,
         default: 4.5
@@ -34,11 +39,27 @@ const tourSchema = new Schema({
     },
     difficulty: {
         type: String,
-        required: [true, "The tour must have a difficulty!"]
+        required: [true, "The tour must have a difficulty!"],
+        enum: {
+            values: ['easy', 'medium', 'hard'],
+            message: 'Difficulty has is either: easy, medium, hard (NOT: {VALUE}!)'
+        }
     },
     discount: {
         type: Number,
-        default: 0
+        default: 0,
+        validate: {
+            // Note: these validators works only for the first time (not when updating)
+            // You need to specify runValidators option in the controllers
+            // or we define it globally in our mongoose config file
+            // mongoose.set('runValidators', true) in our (server.js)
+            validator: function(value) {
+                // the discount has to be < than the actual price
+                return value < this.price; // this is our vanila function
+                // but there are many npm packages to do this for us like validator.js
+            }, 
+            message: 'The discount ({VALUE}) has to be less than the actual price.'
+        }
     },
     summary: {
         type: String,
@@ -56,14 +77,98 @@ const tourSchema = new Schema({
     images: {
         type: Array
     },
-    startDates: { // different dates for the tour
-        type: Date
+    startDates: [Date], // different dates for the tour
+    secretTour: {
+        type: Boolean,
+        default: false
     }
   }, 
   { 
-    timestamps: true 
+    timestamps: true ,
+    toJSON: { // to display our virtuals in case of asked data in form of json
+        virtuals: true
+    },
+    toObject: { // if object
+        virtuals: true
     }
+  }
 );
+//=======================================
+// our virtual property
+tourSchema
+    .virtual('durationInWeeks')
+    .get(function(next) { // now this field will be there in every doc, once we ask for data
+        return this.duration / 7;
+    });
+// Note: we can't use this property in our query , as we said previously it's not on our db
+// just created on every "get" call to our database 
+// another example
+tourSchema
+    .virtual('sayHi')
+    .get(function() {
+        return `Hi from ${this.name}`
+    })
+// we could choose not to use this virtual propery, and do the task in our controllers
+// But, it's the best practices as we separate our business and application logic
+// Always try to make the model has all it's logic as much as possible
+// business logic => means anything related to the buiness itself
+// application logic => means things related to req and res etc.
+
+//=======================================
+// document middlewares:
+// MongoDB is just like express in the concept of middlewares(hooks)(functions listening 
+// on certain events) such as:
+// validate, save, remove, updateOne, deleteOne, aggregate
+// there are hooks like pre, post on each of these tasks 
+tourSchema.pre('save', function(next) {
+    // this middleware get's executed only on saving new doc event
+    // triggers when .save() .create() methods used
+    this.slug = slugify(this.name, { // create slug from name field
+        lower: true
+    })
+    next();
+});
+tourSchema.pre('save', function(next) {
+    console.log('In next save hook')
+    next();
+});
+// Note, we can have mutile middlewares for the same hook (save, update, etc), as much as we want
+tourSchema.post('save', function(doc, next) {
+    // excuete this function after saving a new doc
+
+    next();
+});
+//=============================================
+// Query middlewares:
+// It allows us to run function on the query we want
+tourSchema.pre(/^find/, function(next) { // every query starts with "find"
+    // let's say we have sercet tours, and we dont' the public know about it
+    // so let's create a secretTour field and on every find query, we exclude these docs
+    this.find({
+        secretTour: {
+            $ne: true
+        }
+    });
+    // we could do this in our controller, but just as we sait we should separate our 
+    // buisness and application logic as much as possible
+    next();
+});
+//Note: this only works for find query, but what about findOne or other?, of course will be included
+// so, we have to options, createa new queery middleware, or we use regex
+//=============================================
+// Aggregation middlewares allow use to add pre/ post hooks to our aggregation pipeline
+tourSchema.pre('aggregation', function(next) {
+    // to do the secretTour idea here on our aggregation piplines scope
+    this.pipeline().unshift({
+        $match: {
+            secretTour: {
+                $ne: true
+            }
+        }
+    })
+    // there is no a problem in repeating any stage in our pipline
+});
+
 
 //=============================================
 // Let's export our created model 

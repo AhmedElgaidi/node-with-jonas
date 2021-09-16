@@ -173,10 +173,63 @@ and this is called including and if we want exclude any property, just add "-"
 how they work and so on.
 
 
-// start with video 23
+# Virtual properties:
 
-// goodbye
+- Virtual properties are basically fields that we can define on our schema, but that will 
+not be persistent, so they will not be saved to our database (In order to save use some space)
 
+- Virtual properties make a lot of sense for fields that can be derived from one another such as:
+for example we have the tall of our users in cm, we dont' have to create another field for his length
+in meter for example, or km to meteres and so on, we just need to convert one into another
 
+// How could we do that?
+In our model files
+Schema
+    .virtual('fieldName')
+    .get(function(next) { // We use this middleware every time there is a call to get data from db
 
+    })
+Nowe in the mongoose schema itself, we pass another object (option) to tell mongoose do
+what we want to do
+{
+    toJSON: { // to display our virtuals in case of asked data in form of json
+        virtuals: true
+    },
+    toObject: { // if object
+        virtuals: true
+    }
+}
 
+Note: we can't use this property in our query , as we said previously it's not on our db
+just created on every "get" call to our database 
+
+//==================================================
+// MongoDB validation:
+// - It checks the user input is in the right format as we specified in our schema
+// - It sanitize the input to remove any malicious characters (it's crucial part in dev)
+(Never trust user inputs!)
+// The best practices is to validate the data in our model not in our controllers
+
+// Buit-in validators
+// - required => all schema types
+// - min, max => numbers
+// - minLength, maxLength, enum, match => strings
+
+// Custom error messages:
+There are two ways: (where value is the value being validated)
+1) array syntax
+    min: [6, 'Must be at least 6, got {VALUE}']
+2) object syntax
+    enum: { 
+        values: ['Coffee', 'Tea'],
+        message: '{VALUE} is not supported' 
+    }
+// Custom validation:
+// somtimes the buit-in validator aren't enough, so we need to do some on our own 
+(that's the best practice).
+// these validators are simply a function which returns a boolean, if false means validation fails
+// look at discount to see an example
+
+//==========================================================
+
+// Error handeling in express
