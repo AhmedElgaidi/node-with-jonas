@@ -4,9 +4,12 @@
 const express = require('express');
 
 // Custom modules
+// routes
 const tourRoutes = require('./routes/tours.routes');
 const userRoutes = require('./routes/users.routes');
 const adminRoutes = require('./routes/admin.routes');
+
+const globalErrorHandler = require('./controllers/errorControllers');
 
 //==========================================
 // Let's create our express app instance
@@ -29,5 +32,20 @@ app.use(express.static('public'));
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/tours', tourRoutes);
+
+// 404 handler
+app.all('*', (req, res, next) => {
+    // for all HTTP methods and unhandeled routes
+    res
+        .status(404)
+        .json({
+            "status": "Failed",
+            "message": `Can't find ${req.originalUrl} on our server`
+        });
+    next();
+});
+
+// Global error handler
+app.use(globalErrorHandler);
 
 module.exports = app;
