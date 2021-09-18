@@ -234,3 +234,8 @@ There are two ways: (where value is the value being validated)
 
 // Error handeling in express
 # Dehbugging node.js with ndb pacakge (node debugger)
+// look at the code and learn hahaha (you will see what happened also on expres page)
+
+//==========================================================
+
+# Authenticaion and authorization:

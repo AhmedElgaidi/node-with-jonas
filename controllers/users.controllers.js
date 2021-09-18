@@ -6,14 +6,11 @@ const User = require('../models/User');
 const getAllUsers = async (req, res, next) => {
     try{
         //
-        const query =     {
-            tags: { 
-                $size: 7
-            }  
+        const query = {
         }
         
         //
-        const users = await User.find(query).select('tags');
+        const users = await User.find(query).select('');
         return res.status(200).json({
             "status": "success",
             "results": users.length,

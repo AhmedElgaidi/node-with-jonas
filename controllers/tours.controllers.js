@@ -68,7 +68,13 @@ const updateTour = catchAsyncErrors(async (req, res, next) => {
         new: true, // we have to add this to return the updated document.
         runValidators: true // to run the defined validtors in our schema.
     })
-
+    const object = {
+        firstName: 'Ola',
+        lastName: 'Shawky',
+        age: 21,
+        birthday: '2/2000',
+        habla: true
+    }
     if(!updatedTour) {
         // we passed the error to our error handler
         return next(new ErrorHandler(`Can't find tour with this ID`, 404));

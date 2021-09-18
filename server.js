@@ -5,11 +5,11 @@ require('dotenv').config({ path: './config.env' });
 const mongoose = require('mongoose');
 const app = require('./app');
 
-const server = app.listen(8000, () => {
+const server = app.listen(process.env.PORT || 8000, () => {
   mongoose
     .connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
+      useUnifiedTopology: true
     })
     .then(() => {
       console.log(`Server is running on port: ${process.env.PORT} (${process.env.NODE_ENV} environment)`);

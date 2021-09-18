@@ -2,6 +2,7 @@ const express = require('express');
 
 // Import our controllers
 const userControllers = require('../controllers/users.controllers');
+const authControllers = require('../controllers/auth.controllers');
 
 // Create my express router instance
 const router = express.Router();
@@ -12,6 +13,11 @@ const router = express.Router();
 // Note: this middleware only works if the url has the id param.
 // and that may help us in validating the params and so on in th future.
 router.param('id', userControllers.checkParamId);
+
+router
+    .route('/signup')
+    .post(authControllers.signupPOST)
+    .get(authControllers.signupGET);
 
 router
     .route('/')
