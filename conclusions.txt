@@ -239,3 +239,59 @@ There are two ways: (where value is the value being validated)
 //==========================================================
 
 # Authenticaion and authorization:
+- There are many approachs for implementing Authenticaion and authorization, but JWT is the modern one
+As, it's stateless, there is not sessions created on our server and so on, and it's a good solution
+for RESTFul APIs (As the one we are creating), as the restful APIs should always be stateless
+
+// The senario:
+1) The client sends the email and password
+2) the server checks if they are present and in a valid format, then create a unique JWT
+3) the server sends back that jwt and get stored either in cookie, localStorage or headers
+// so the server doesn't actually know which user is logged on (just there is a user) and that's
+the stateless approach (everything is stored on client side not as sessions in our server)
+4) one the logged in user want to access a protected route, he has to send the JWT along the request
+, so the server can validate this token 
+5) if the token is valid, then allow acces, if not then give him a message for not allowing access
+Note: the more payload in ou jwt, the larger the token is, and never put sensitive data there
+as anyone can decode it and get the payload
+6) But, how do we verify it? we actually have a secret key stored in our server an we take the 
+given header and payload and add this secert key to them and compare, that's it!
+
+
+Remember:     
+// One of the best ways to send a token to our server is by settting a header and
+// putting the token there, so we can extract it from the header here
+// the convention for the header name that carry our access token is "authorization"
+//==========================================================
+
+// How to implement reset password ?
+(1) we implement a forgot-password controller/ route, so the user can send his email to
+, once we got this email, we create a resetToken (simple random token not like that acces
+strong token) with a very short expiration time and send it to his mail box.
+(2) the user opens his mail box and open our get reset-password route and do PATCH request
+and send to our server the previously given random token + his new password, 
+and we store it and that's it.
+
+//==========================================================
+## How to send email in node.js?
+- We do that with the help of nodemailer, see the code
+
+//==========================================================
+Remember: Token-based authentication works as follows:
+1) user tries to log in, if he was authenticated, this user is asigned a token which is unique
+and have an expiration date(eg. 1h)
+2) On every subsequent API call, the user provides his token in order to consume our resources
+3) When the time of expiration (1h) is finished, then he has to log in again to get a new token
+// we can't make the user do this every 1h, it's really annoying, so we have to solutions
+- Increase the time of the token or
+- create a refresh token to extend this access token time.
+And that's the differnce between
+access token(short, for consuming our api) VS. refresh token (long, extending access token time)
+# So, How can we implement resfresh token?
+
+Instead of sending our jwt in a form of a string to the client, we send it in the form of cookie
+So, the browser can store (automatically) and send it (automatically) over ever later request 
+
+
+// start with video 18
+mongosh "mongodb+srv://cluster0.lmdeo.mongodb.net/nodeWithJonas" --username elbotanist --password ZKdkNZtC3Xwq7Y75

@@ -20,6 +20,91 @@ router
     .get(authControllers.signupGET);
 
 router
+    .route('/verify-account/:token')
+    .patch(authControllers.verifyAccountPATCH);
+
+router
+    .route('/login')
+    .post(authControllers.loginPOST)
+    .get(authControllers.loginGET);
+
+router
+    .route('/logout')
+    .get(
+        authControllers.protect,
+        authControllers.isActive,
+        authControllers.logoutGET
+    );
+router
+    .route('/update-password')
+    .patch(
+        authControllers.protect,
+        authControllers.isActive,
+        authControllers.updatePasswordPATCH
+    )
+    .get(authControllers.updatePasswordGET);
+
+router
+    .route('/update')
+    .patch(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.updatePATCH
+    )
+    .get(userControllers.updateGET);
+
+router
+    .route('/deactivate')
+    .post(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.deActivatePOST
+    )
+    .get(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.deActivateGET
+    );
+
+router
+    .route('/activate')
+    .patch(
+        authControllers.protect,
+        userControllers.activatePATCH
+    );
+
+router
+    .route('/delete-account')
+    .post(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.deleteAccountPOST
+    );
+
+router
+    .route('/connected-devices')
+    .get(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.connectedDevicesGET
+    )
+    .patch(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.connectedDevicesPOST
+    );
+
+router
+    .route('/forgot-password')
+    .post(authControllers.forgotPasswordPOST)
+    .get(authControllers.forgotPasswordGET);
+
+router
+    .route('/reset-password/:token')
+    .patch(authControllers.resetPasswordPOST)
+    .get(authControllers.resetPasswordGET);
+
+router
     .route('/')
     .get(userControllers.getAllUsers)
     .post(userControllers.createUser);

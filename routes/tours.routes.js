@@ -2,6 +2,7 @@ const express = require('express');
 
 // Import our controllers
 const toursControllers = require('../controllers/tours.controllers');
+const authControllers = require('../controllers/auth.controllers');
 
 // Create my express router instance
 const router = express.Router();
@@ -23,18 +24,29 @@ router
 
 router
     .route('/top-5-cheap-maxGroupSize')
-    .get(toursControllers.topFiveCheapestTours, toursControllers.getAllTours)
+    .get(
+        toursControllers.topFiveCheapestTours, 
+        toursControllers.getAllTours
+    );
 
 router
     .route('/')
-    .get(toursControllers.getAllTours)
+    .get(
+        authControllers.protect,
+        authControllers.isActive,
+        toursControllers.getAllTours
+    )
     .post(toursControllers.createTour);
 
 router
     .route('/:id')
     .get(toursControllers.getTour)
     .patch(toursControllers.updateTour)
-    .delete(toursControllers.deleteTour);
+    .delete(
+        authControllers.protect, 
+        authControllers.restrictTo('admin', 'lead-guide'), 
+        toursControllers.deleteTour
+    );
 
 //===============================================
 // Export my router instance

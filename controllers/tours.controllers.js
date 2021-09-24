@@ -31,6 +31,7 @@ const getAllTours = catchAsyncErrors(async (req, res, next) => {
         // Let's send response
         return res
             .status(200).json({
+                "data1": req.device,
                 "status": "success",
                 "results": tours.length,
                 "data": {
@@ -40,7 +41,8 @@ const getAllTours = catchAsyncErrors(async (req, res, next) => {
     
 });
 
-const getTour = catchAsyncErrors(async (req, res, next) => {
+    const getTour = catchAsyncErrors(async (req, res, next) => {
+        
     const tour = await Tour.findById(req.params.id);
 
     if(!tour) {
@@ -68,13 +70,7 @@ const updateTour = catchAsyncErrors(async (req, res, next) => {
         new: true, // we have to add this to return the updated document.
         runValidators: true // to run the defined validtors in our schema.
     })
-    const object = {
-        firstName: 'Ola',
-        lastName: 'Shawky',
-        age: 21,
-        birthday: '2/2000',
-        habla: true
-    }
+    
     if(!updatedTour) {
         // we passed the error to our error handler
         return next(new ErrorHandler(`Can't find tour with this ID`, 404));

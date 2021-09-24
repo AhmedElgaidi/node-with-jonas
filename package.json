@@ -28,9 +28,16 @@
     "prettier": "^2.4.0"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cookie-parser": "^1.4.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "ipinfo": "^1.5.1",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.5",
+    "ndb": "^1.1.5",
+    "nodemailer": "^6.6.3",
+    "request": "^2.88.2",
     "slugify": "^1.6.0",
     "validator": "^13.6.0"
   },
