@@ -21,7 +21,7 @@ router
 
 router
     .route('/verify-account/:token')
-    .patch(authControllers.verifyAccountPATCH);
+    .post(authControllers.verifyAccountPOST );
 
 router
     .route('/login')

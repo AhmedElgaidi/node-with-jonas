@@ -61,7 +61,7 @@ const signupPOST = catchAsyncErrors(async (req, res, next) => {
     }
 });
 
-const verifyAccountPATCH = catchAsyncErrors(async (req ,res, next) => {
+const verifyAccountPOST = catchAsyncErrors(async (req ,res, next) => {
     const verificationToken = req.params.token;
     const user = await User.findOne({verificationToken}).select('+isVerified');
     if(!user) {
@@ -355,7 +355,7 @@ const updatePasswordGET = (req, res, next) => {
 module.exports = {
     signupGET,
     signupPOST,
-    verifyAccountPATCH,
+    verifyAccountPOST,
     loginGET,
     loginPOST,
     logoutGET,
