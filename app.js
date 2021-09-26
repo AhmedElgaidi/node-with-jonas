@@ -3,7 +3,11 @@
 // 3rd party modules
 const express = require('express');
 const cookieParser = require("cookie-parser");
-
+const rateLimit = require('express-rate-limit');
+const helmet = require("helmet");
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 // Custom modules
 // routes
@@ -33,22 +37,46 @@ app.use(express.static('public'));
 // For parsing our cookies
 app.use(cookieParser())
 
+// Rate limiting
+const limiter = rateLimit({
+    // let every certain ip to send only 20 request in 1 hour
+    max: 20, // 20 request
+    windowMs: 60 * 60 * 1000, // 1h
+    message: 'Too many requests from your IP. Please try again in an hour!'
+});
+// note, we don't have to use it on our '/api' as our express.static middleware could cause 
+// a ddos on our server
+// this middleware adds three headers on every request (total, remaining request, and time of reset)
+app.use(limiter);// we also could use it on a certain route.
 
+// Helmet (additional headers)
+app.use(helmet()); // this middleware is a wrapper for about 14 smaller middlewares
 
-app.use( async(req, res, next) => {
+// these sanitizer filters data from req.body, query params
+// Data sanitization aganist NoSQL queries
+app.use(mongoSanitize());
 
-    //
-    
+// Data sanitization aganist XSS
+app.use(xss());
 
+// Prevent parameter pollution with hpp
+// In our case, we want to duplicate som query parameters, so, let's whitelist
+app.use(hpp({
+    whitelist: [ // we may don't need to whitelist them use this pacakage at all, but in our 
+    // scheam, we need to test for every give query and so on, the result would be complex code
+        "duration",
+        "ratingQuantity",
+        "ratingAverage",
+        "maxGroupSize",
+        "difficulty",
+        "price"
+    ]
+}));
+
+app.use( (req, res, next) => {
 
     next();
 })
-// const myFunc = async () => {
-//     const response = await fetch('ipinfo.io/156.219.152.96?token=07d8eb107817df');
-//     const data = await response.json();
-//     console.log(data)
-// }
-// myFunc()
 
 
 // My routes

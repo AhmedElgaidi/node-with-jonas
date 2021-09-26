@@ -108,6 +108,8 @@ const checkParamId = (req, res, next) => {
 }
 
 const getTourStats = catchAsyncErrors(async (req, res, next) => {
+    // it's better to do this aggregate code in the model file and just use it here
+    // remember to isolate your components as much as possible
     const stats = await Tour.aggregate([
         {
             $match: {

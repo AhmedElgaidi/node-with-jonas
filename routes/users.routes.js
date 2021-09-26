@@ -29,6 +29,10 @@ router
     .get(authControllers.loginGET);
 
 router
+    .route('/verify-login')
+    .post(authControllers.verifyLoginPOST);
+
+router
     .route('/logout')
     .get(
         authControllers.protect,
@@ -80,7 +84,9 @@ router
         authControllers.isActive,
         userControllers.deleteAccountPOST
     );
-
+// note: instead of making authcontrllers.protect and restrictTo duplicates here, we could use
+// a simple middleware as follows:
+// router.use(authControllers.get, authControllers.restrictTo);
 router
     .route('/connected-devices')
     .get(
@@ -91,7 +97,7 @@ router
     .patch(
         authControllers.protect,
         authControllers.isActive,
-        userControllers.connectedDevicesPOST
+        userControllers.connectedDevicesPATCH
     );
 
 router

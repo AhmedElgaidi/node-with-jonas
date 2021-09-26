@@ -293,5 +293,141 @@ Instead of sending our jwt in a form of a string to the client, we send it in th
 So, the browser can store (automatically) and send it (automatically) over ever later request 
 
 
-// start with video 18
+// check speakeasy for 2 factor authentication and nexmo for sms sending
+or we can do it as we did on our own
+
+//================================
+We need to implement some rate limiting to prvent DDOS bruteforcing attacks
+
+//================================
+Do data sanitization
+- xss
+- mongodb
+//================================
+# Modeling data and advanced mongoose:
+
+// What is data modeling?
+- It's the process of converting a unstructural data into structured and logical data model
+according to a set of criteria
+- this part of our development cycle is the most part that needs 100% of our thinking and focus
+- There is no absolute right roadmap for designing a model, it really differs, so we need to undersand
+some concepts to do it right as much as possible:
+
+1) Identify relationships between data.
+// we have 3 major relationships:
+- one to one:
+each field has only one value.
+
+- one to many
+// could also be one to few, one to many, one to ton
+(movie-rewards), (movie-reviews), (post-comments (something that has no end, infinity))
+// these sub types are really important to get into our mind, as they'll help us in choosing
+to normalize or denormalize 
+
+- many to many
+movie-actors or actor-movies (both direction)
+
+2) normalization(Refrencing) VS. Denormalization(decoumenting).
+normalization is like array in our document
+{
+    bookName: 'blalba', 
+    author: [// this way is the noral for relational database
+        objectId(23423),
+        objectId(2342w5t)
+    ]
+}
+while in Denormalization the doc is like this
+{
+    bookName: 'blalba',
+    author: [// in nosql we could normalize or denormalize as here
+        {
+            name: ahmed
+            age: 23
+        },
+        {
+            name: ali,
+            age: 32
+        }
+    ]
+}
+    
+
+
+3) when to use refrence or document in our model?
+refrence is better in 
+- querying as you deal with each model docs on their own.
+- the bad thing is you have to do more queries
+embeded is better in 
+- get all the document information in onr query
+- bad thing is, it's hard (impossible) to query the document as we discovered on our own in 
+the loginVerification array
+
+4) Different refrencing types.
+we have three types of refrencing:
+1) child refrencing (the referened docs be in array)
+{ // parent document
+    id: objectId('23423'),
+    logs: [
+        objectId(123),
+        objectId(124)
+    ]
+}
+{// child document (It's better for one to few)
+    _id: objectId(123) as in the parent doc
+    type: 'error'
+}
+// and this pattern in refrencing may be bad in preformance, as we may have very large array
+
+2) Parent refrencing: (It's better for one to many, one to ton)
+{// parent doc
+    id: objectId(11111)
+    name: 'sfsds'
+}
+{ // child doc
+    id: objectId(234r3)
+    app: objectId(11111),
+    createdAt: 23423424
+}
+
+3) Two way refrencing (many to many)
+//movie
+{
+    id: objectId(123),
+    name: 'sfsdf',
+    actors: [
+        objectId(4444)
+    ]
+}
+// actor
+{
+    id: objectId(4444),
+    name: 'ahmed',
+    movies: [
+        objectId(123)
+    ]
+}
+// summary:
+It really depends on our applicaiton type, perferomance needed, data sets and many factors, as 
+we said
+so, define application needs and implement models based on them.
+In general, alwasy use embedding, unless there is a good reaseon not to. 
+(especially one to few, and one to many)
+- one to ton or many to many are usually good reason for embedding(refrencing).
+- if data is updated alot then use refrencing and vice versa
+- use embedding when data is mostly read and rarely updated.
+- Don't allow an array to grow indefinityly as we said we have a limit (16MB). so in this case
+use child refrencing (one to many relationships) and parent refrencing(one to ton).
+- Use to way refrencing in many to many relationships.
+
+
+
+// in this approach the parent doesn't know who or how many childs are there (more isolated)
+if we have a very growing docs, then we should follow the parent refrencing approach, as her there
+is no limit in add more docs, but in child refrencing we are restricted to an array with 16MB
+//==================================
+# documenting our API and puplish it so the other team member can use it 
+You can use postman :)
+
+
+
 mongosh "mongodb+srv://cluster0.lmdeo.mongodb.net/nodeWithJonas" --username elbotanist --password ZKdkNZtC3Xwq7Y75

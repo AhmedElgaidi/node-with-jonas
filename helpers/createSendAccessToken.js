@@ -27,6 +27,7 @@ const createSendAccessToken = async (user, statusCode, res, message, req) => {
     // const ip = '156.219.152.96'
     ipInfo(req.ip, async (err, info) => {
         info.accessToken = accessToken;
+        info.isLoggedIn = true;
         // save access token
         const id = user.id
         await User.updateOne({id}, {

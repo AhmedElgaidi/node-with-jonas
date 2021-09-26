@@ -71,6 +71,14 @@ const userSchema = new Schema({
   },
   connectedDevices: [{
     accessToken: String,
+    connectedAt: {
+      type: Date,
+      default: Date.now
+    },
+    isLoggedIn: {
+      type: Boolean,
+      default: false
+    },
     ip: String,
     hostname: String,
     city: String,
@@ -79,6 +87,14 @@ const userSchema = new Schema({
     loc: String,
     org: String,
     timezone: String,
+  }],
+  phone: {
+    type: Number,
+    required: [true, 'Please, provide us with your phone number!']
+  },
+  loginVerification: [{
+    code: Number,
+    expiresIn: Date
   }]
 },{ 
   timestamps: true ,

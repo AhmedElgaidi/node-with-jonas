@@ -28,10 +28,15 @@
     "prettier": "^2.4.0"
   },
   "dependencies": {
+    "@vonage/server-sdk": "^2.10.7-beta-2",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "express-mongo-sanitize": "^2.1.0",
+    "express-rate-limit": "^5.3.0",
+    "helmet": "^4.6.0",
+    "hpp": "^0.2.3",
     "ipinfo": "^1.5.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.5",
@@ -39,7 +44,8 @@
     "nodemailer": "^6.6.3",
     "request": "^2.88.2",
     "slugify": "^1.6.0",
-    "validator": "^13.6.0"
+    "validator": "^13.6.0",
+    "xss-clean": "^0.1.1"
   },
   "engines": {
     "node": ">=16.0.0"

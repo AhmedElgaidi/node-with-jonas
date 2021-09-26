@@ -4,6 +4,7 @@ const User = require('../models/User');
 
 const sendEmail = require('../helpers/email');
 const createSendAccessToken = require('../helpers/createSendAccessToken');
+const sendSMS = require('../helpers/sendSMS');
 
 const catchAsyncErrors = require('../errors/catchAsyncErrors');
 const ErrorHandler = require('../errors/errorHandler');
@@ -17,7 +18,7 @@ const signupGET = (req, res, next) => {
 const signupPOST = catchAsyncErrors(async (req, res, next) => {
     // We need to only specifiy the needed fields, not acepting the whole req.body
     // as the user can add more fields like making him self an admin and so on
-    const { name, email, photo, password, passwordConfirm, role } = req.body;
+    const { name, email, photo, password, passwordConfirm, role, phone } = req.body;
 
     // (1) Now let's create the account
     const user = await User.create({
@@ -26,7 +27,8 @@ const signupPOST = catchAsyncErrors(async (req, res, next) => {
         password,
         passwordConfirm,
         photo,
-        role
+        role,
+        phone
     });
     // (2) Create verification token and save it to user document
     const verificationToken =  user.createVerifyEmailToken();
@@ -47,7 +49,7 @@ const signupPOST = catchAsyncErrors(async (req, res, next) => {
 
         res.status(201).json({
             "status": "success",
-            "message": "Account is created successfully. Please, go to your mail box and verify your account!"
+            "message": "Account is created successfully. Please, check your mail box to verify your account!"
         });
     
     } catch( err) {
@@ -64,9 +66,17 @@ const signupPOST = catchAsyncErrors(async (req, res, next) => {
 const verifyAccountPOST = catchAsyncErrors(async (req ,res, next) => {
     const verificationToken = req.params.token;
     const user = await User.findOne({verificationToken}).select('+isVerified');
+
+    // Check the validity of this verification token
     if(!user) {
         return next(
             new ErrorHandler('Invalid token!', 400)// not found
+        );
+    }
+    // Check if the account is already verified!
+    if(user.isVerified) {
+        return next(
+            new ErrorHandler('Your account is already verified!', 400)// not found
         );
     }
     user.isVerified = true;
@@ -89,22 +99,78 @@ const loginPOST = catchAsyncErrors(async(req, res, next) => {
     // (1) Check if the email and password exist
     if (!email || !password) {
         return next(
-             new ErrorHandler(`Please, provide use with email and password!`, 400)
+             new ErrorHandler(`Please, provide us with the email and password!`, 400)
         );
     }
     // (2) check if the user exists and the password is correct
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password +isVerified');
 
     if (!user || !(await user.correctPassword(password, user.password))) {
         // 401 = unauthorized
         // we could separte the logic, but we make it easy for the attacker to know which field
         // is incorrect and do his enumeration.
         return next(
-            new ErrorHandler('Please, provide us with a valid email and password!', 401)
+            new ErrorHandler('Invalid email or password. Please, try again!', 401)
+        );
+
+    }
+    // check if the accout is verified or not
+    if(!user.isVerified) {
+        return next(
+            new ErrorHandler('Your account is not verified. Please verify it!', 401)
         );
     }
+    // Let's generate a 6 digigt number 
+    // and save them to them user doc and send it to his phone number
+    const loginVerificationCode = Math.floor(100000 + Math.random() * 900000);
 
-    // (3) if everything is okay, send an acess token to the client
+    const date = new Date();
+    date.setTime(date.getTime() + (3 * 60 * 1000));// expires in 5 mintues
+
+    await User.updateOne({_id: user.id}, {
+        $push: {
+            loginVerification: {
+                code: loginVerificationCode,
+                expiresIn: date
+            }
+        }
+    })
+
+    sendSMS(user.phone, loginVerificationCode);
+
+    res.status(200).json({
+        "status": "success",
+        "message": "Please, send us the 6 digit code and your email on /verify-login to get access.\n(You only have one valid try and your code exipres in 3 mintues)!"
+    });
+});
+const verifyLoginPOST = catchAsyncErrors(async (req, res, next) => {
+    const { email, code } = req.body;
+    const user = await User.findOne({ email });
+
+    // check if the user previously has this code or not
+    const userHasThisCode = user.loginVerification.some(doc => doc.code === +code);
+
+    if(!user || !userHasThisCode) {
+        return next(
+            new ErrorHandler('Invalid email or already used code!', 401)
+        )
+    }
+    // if the email and code are valid, then check the code expiry date
+    const loginVerificationsArray =user.loginVerification.filter(doc => doc.code === +code)[0];
+    const codeExpiresInDate = new Date(loginVerificationsArray.expiresIn).getTime() / 1000;
+    const nowDate = new Date(Date.now()).getTime()/ 1000;
+
+    if(codeExpiresInDate < nowDate) {
+        return next(
+            new ErrorHandler('Your code is already expired!', 401)
+        )
+    }
+    // Now, delete the loginVerification document from user (save space)
+    user.loginVerification = user.loginVerification.filter(doc => doc.code !== +code);
+
+    await user.save({ validateBeforeSave: false });
+
+    // if everything is okay, send an acess token to the client
     const message = 'You logged in successfully!';
     createSendAccessToken(user, 200, res, message, req);
 });
@@ -123,6 +189,31 @@ const logoutGET = catchAsyncErrors(async (req, res, next) => {
             }
         }
     });
+    await User.updateOne({id}, {
+        $set: {
+            "loginVerification.code": undefined,
+            "loginVerification.expiresIn": undefined,
+            "loginVerification.numOfTries": undefined,
+        }
+    }, {
+        new: true,
+        multi: true
+    });
+
+    // {
+    //     $and: [
+    //         {
+    //             email
+    //         },
+    //         {
+    //             loginVerification: {
+    //                 $elemMatch: {
+    //                     code
+    //                 }
+    //             }
+    //         }
+    //     ] 
+    // }
     res.status(200).json({
         "status": "success",
         "message": "You logged out successfully!"
@@ -358,6 +449,7 @@ module.exports = {
     verifyAccountPOST,
     loginGET,
     loginPOST,
+    verifyLoginPOST,
     logoutGET,
     protect,
     restrictTo,

@@ -149,7 +149,7 @@ const connectedDevicesGET = catchAsyncErrors(async (req ,res, next) => {
     })
 });
 
-const connectedDevicesPOST = catchAsyncErrors(async (req ,res, next) => {
+const connectedDevicesPATCH = catchAsyncErrors(async (req ,res, next) => {
     const id = req.user.id
     await User.updateOne({id}, {
         $pull: {
@@ -180,5 +180,5 @@ module.exports = {
     activatePATCH,
     deleteAccountPOST,
     connectedDevicesGET,
-    connectedDevicesPOST
+    connectedDevicesPATCH
 }

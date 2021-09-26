@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
-
+// const User = require('./User');
 //========================================
 // Let's define our Schema
 const Schema = mongoose.Schema;
@@ -19,7 +19,12 @@ const tourSchema = new Schema({
     slug: String,
     ratingAverage: {
         type: Number,
-        default: 4.5
+        default: 4.5,
+        min: [1, 'rating must be 1 or above!'],
+        max: [5, 'ratin must be 5 or below'],
+        // we could do a setter here
+        set: value => Math.floor(value * 10) /10 
+        // It's a good trick 4.666666 * 10 46.6666 then round and divide by 10
     },
     ratingQuantity: { // how many others rates this tour
         type: Number,
@@ -81,7 +86,43 @@ const tourSchema = new Schema({
     secretTour: {
         type: Boolean,
         default: false
-    }
+    },
+    startLocation: {
+        type: {
+            type: String,
+            default: 'point', // offered by mongodb
+            // let's specifty that it's only option
+            enum: ['point']
+        },
+        coordinates: [Number], // array of numbers
+        address: String,
+        description: String
+    },
+    locations: [{
+        type: {
+            type: String,
+            default: 'point',
+            enum: ['point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number
+    }],
+    // guides: Array// this is in case of embeding example (need import as we used hooks down)
+    guides: [{// child refrencing
+        type: mongoose.Schema.ObjectId,
+        ref: 'User' // we don't have to import user model in this case
+    }]
+    // Now, we are expecting array of objectIds, so we can populate them later
+    //  when we call them in our query as query.populate('guides');
+    // If we want to exclude some of user fields
+    // query.populate({
+        // path: 'guides',
+        // select: '-__v -passwordChangedAt' 
+    // });
+    // So, populate is always used with refrencing, but try not to use it too much as it decrease
+    // the preformance as mongoose do 2X1 query
   }, 
   { 
     timestamps: true ,
@@ -108,11 +149,37 @@ tourSchema
     .get(function() {
         return `Hi from ${this.name}`
     })
+
 // we could choose not to use this virtual propery, and do the task in our controllers
 // But, it's the best practices as we separate our business and application logic
 // Always try to make the model has all it's logic as much as possible
 // business logic => means anything related to the buiness itself
 // application logic => means things related to req and res etc.
+//=======================================
+// Indexing is to increase the performance in reading or searching and so on, but keep in mind,
+// that indexed fields once updated or get more docs the arragnment re-indexed, that why don't 
+//use indexing the frequently updated fields.
+// tourSchema.index({ // this is called a compound index
+//     price: 1,// this create index on our price fiedl in asc order
+//     ratingAverage: -1// in dsc order
+// });
+// if we want to make unique index
+// tourSchema.index({
+//     price: 1
+// });
+// example: if we have a feature of makeing rate a tour, so we only have to let user rate only
+// one time so no duplicates found, so we can do our aggregates and get the averages and so on
+// so we can't make the tour index and user index itself as by this we only let tour to have one
+// rate, and the user do one rate, and we don't want that, we want to make a comination of tour
+// and user index in this case and that's it
+// so, in our reviewschem
+// reviewSchema.index({
+//     tour: 1,
+//     user: 1
+// }, {
+//     unique: true
+// });
+
 
 //=======================================
 // document middlewares:
@@ -128,6 +195,17 @@ tourSchema.pre('save', function(next) {
     })
     next();
 });
+
+// Here, we learnt how to do embeding and not refrencing (relate tours to users)
+// tourSchema.pre('save', async function(next) {
+//     // this returns promises not documents
+//     const guidesPromises = this.guides.map(async id => await User.findById(id));
+
+//     // now let's override the simple guide array of ids to array of users
+//     this.guides = await Promise.all(guidesPromises);
+//     next();
+// });
+
 tourSchema.pre('save', function(next) {
     console.log('In next save hook')
     next();
@@ -155,6 +233,18 @@ tourSchema.pre(/^find/, function(next) { // every query starts with "find"
 });
 //Note: this only works for find query, but what about findOne or other?, of course will be included
 // so, we have to options, createa new queery middleware, or we use regex
+//================
+// virtual population(population means don't make data persistence, that happens only when calling)
+// Note: After we followed the parent refrencing on review model, now the review model donesn't
+// who tours or user or thier count, just has their id. So, How do we populate the reviews docs
+// from the tour direction?? we use virtuals for this
+tourSchema.virtuals('reviews', {
+    // we need to add some options to implement virtual population not just population
+    ref: 'Review',
+    foreignField: 'tour', // the name of the tour field in reviow model
+    localField: '_id'
+})
+
 //=============================================
 // Aggregation middlewares allow use to add pre/ post hooks to our aggregation pipeline
 tourSchema.pre('aggregation', function(next) {
