@@ -227,10 +227,8 @@ const protect = catchAsyncErrors(async (req, res, next) => {
         accessToken = req.headers.authorization.split(' ')[1];
     } else if (req.cookies.accessToken) {
         accessToken = req.cookies.accessToken;
-      }
-    console.log('from protect', {
-        accessToken
-    })
+    }
+
     if (!accessToken) {
         return next(
             new ErrorHandler('You are not logged in! Please log in to get access.', 401)//Not authorized
@@ -248,9 +246,6 @@ const protect = catchAsyncErrors(async (req, res, next) => {
             new ErrorHandler(`The user belonging to this token doens't exist anymore!`, 401)
         );
     }
-    // (6) Add this access token ot the user array of access tokens
-    console.log('hi from protect', currentUser.accessTokens)
-
 
     // If every thing is okay, then proceed the next middleware
     req.user = currentUser; // As, we may need the user in the future, in the next middlewares

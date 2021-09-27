@@ -16,9 +16,12 @@ const createSendAccessToken = async (user, statusCode, res, message, req) => {
         expires: new Date(
             Date.now() + process.env.ACCESS_TOKEN_COOKIE_EXPIRES * 24 * 60 * 60 * 1000 //1day
           ),
-        httpOnly: true
+        httpOnly: true,
+        // secure: req.secure || req.headers['x-forwareded-proto'] === 'https' // or write it here
     };
-    if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+    // we can't just write process.env.NODE_ENV === 'production', we need to add these two options
+    // because of heroku proxy (req.secure is not enough because of proxies)
+    if (req.secure || req.headers['x-forwareded-proto'] === 'https') cookieOptions.secure = true;
 
     res.cookie('accessToken', accessToken, cookieOptions);
 

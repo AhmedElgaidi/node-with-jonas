@@ -58,6 +58,16 @@ router
     .get(userControllers.updateGET);
 
 router
+    .route('/update-photo')
+    .post(
+        authControllers.protect,
+        authControllers.isActive,
+        userControllers.uploadUserPhoto,
+        userControllers.resizeUserPhoto,
+        userControllers.updatePhotoPOST
+    );
+
+router
     .route('/deactivate')
     .post(
         authControllers.protect,

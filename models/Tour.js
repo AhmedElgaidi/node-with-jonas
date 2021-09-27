@@ -238,7 +238,7 @@ tourSchema.pre(/^find/, function(next) { // every query starts with "find"
 // Note: After we followed the parent refrencing on review model, now the review model donesn't
 // who tours or user or thier count, just has their id. So, How do we populate the reviews docs
 // from the tour direction?? we use virtuals for this
-tourSchema.virtuals('reviews', {
+tourSchema.virtual('reviews', {
     // we need to add some options to implement virtual population not just population
     ref: 'Review',
     foreignField: 'tour', // the name of the tour field in reviow model

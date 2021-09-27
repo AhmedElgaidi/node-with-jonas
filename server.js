@@ -32,3 +32,13 @@ process.on('uncaughtException', err => {
   console.log('Uncaught exceptions, shutting down....');
   server.close(() => process.exit(1));
 });
+
+// on production (heroku) the dyno restarts every 24 hours to keep our server healty and active
+// so what if we have some requests during this time? they will be hanging, and of course we don't
+// want to have that
+process.on('SIGTERM', () => {
+  console.log('SIGTERM RECEIVED. Shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated!');
+  });
+});

@@ -275,6 +275,17 @@ and we store it and that's it.
 //==========================================================
 ## How to send email in node.js?
 - We do that with the help of nodemailer, see the code
+- remember, we could use "https://github.com/leemunroe/responsive-html-email-template" and 
+ customize it a little bit and use it as a template for ejs email files, remeber also that there is 
+ a many websites that convert the html into pug, ejs and so on.
+- instead of using your real email for testing, you could use a service like mailsac.com
+which gives you a fake email and mailbox
+//==========================================================
+## How to add payment in our website?
+we use strip as an online payment platform, it's really easy to use and to easy to integrate with
+node. check jonas module for payment, it's really good.
+note: we don't have to implement sending email to user after successful payment, as stripe do this
+automatically.
 
 //==========================================================
 Remember: Token-based authentication works as follows:
@@ -424,6 +435,11 @@ use child refrencing (one to many relationships) and parent refrencing(one to to
 // in this approach the parent doesn't know who or how many childs are there (more isolated)
 if we have a very growing docs, then we should follow the parent refrencing approach, as her there
 is no limit in add more docs, but in child refrencing we are restricted to an array with 16MB
+//==================================
+# Image uploading:
+- we could upload only one, or multiple with multer
+- we could do some image processing with a powerfull pacakge called sharp
+
 //==================================
 # documenting our API and puplish it so the other team member can use it 
 You can use postman :)
