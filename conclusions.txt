@@ -445,5 +445,3 @@ is no limit in add more docs, but in child refrencing we are restricted to an ar
 You can use postman :)
 
 
-
-mongosh "mongodb+srv://cluster0.lmdeo.mongodb.net/nodeWithJonas" --username elbotanist --password ZKdkNZtC3Xwq7Y75
